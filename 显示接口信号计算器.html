@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JC显示接口信号速率计算器</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  :root{
+    --primary:#1E3A5F;
+    --secondary:#2563EB;
+    --accent:#059669;
+    --bg:#F8FAFC;
+    --fg:#0F172A;
+    --fg-muted:#475569;
+    --muted:#F1F3F5;
+    --border:#E4E7EB;
+    --card:#FFFFFF;
+    --destructive:#DC2626;
+    --warn:#B45309;
+    --ok:#059669;
+    --ring:#2563EB;
+    --radius:12px;
+    --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 16px rgba(15,23,42,.06);
+  }
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--fg);line-height:1.5;font-size:15px;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  .container{max-width:980px;margin:0 auto;padding:28px 20px 64px;}
+  header.page-head{margin-bottom:22px;}
+  header.page-head h1{font-size:24px;font-weight:700;margin:0 0 6px;color:var(--primary);letter-spacing:-.01em;}
+  header.page-head p{margin:0;color:var(--fg-muted);font-size:14px;}
+
+  .panel{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:20px;margin-bottom:16px;
+  }
+  .panel h2{font-size:13px;font-weight:600;margin:0 0 14px;color:var(--fg);text-transform:uppercase;letter-spacing:.05em;}
+
+  .input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .field label{font-size:13px;font-weight:500;color:var(--fg-muted);}
+  .input-wrap{position:relative;display:flex;align-items:center;}
+  .input-wrap input,.field select{
+    width:100%;padding:10px 12px;font-size:15px;color:var(--fg);background:var(--card);
+    border:1px solid var(--border);border-radius:8px;transition:border-color .15s,box-shadow .15s;
+    font-family:inherit;
+  }
+  .input-wrap input{padding-right:40px;}
+  .input-wrap .unit{position:absolute;right:12px;color:var(--fg-muted);font-size:13px;pointer-events:none;}
+  input:focus,select:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+  .field.invalid input,.field.invalid select{border-color:var(--destructive);box-shadow:0 0 0 3px rgba(220,38,38,.12);}
+  .error{font-size:12px;color:var(--destructive);min-height:14px;line-height:1.2;}
+
+  #vbyone-fields{display:none;grid-column:1/-1;}
+  #vbyone-fields.show{display:block;}
+  #vbyone-fields .fieldset-note{font-size:12px;color:var(--fg-muted);margin-bottom:10px;padding-top:12px;border-top:1px dashed var(--border);}
+  .vb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;}
+
+  .selector-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .selector-row label{font-size:14px;font-weight:600;color:var(--fg);}
+  #signal-type{max-width:300px;flex:1 1 220px;padding:10px 12px;font-size:15px;color:var(--fg);background:var(--card);border:1px solid var(--border);border-radius:8px;font-family:inherit;cursor:pointer;}
+  #signal-type:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+  #calc-btn{padding:10px 24px;font-size:15px;font-weight:600;color:#fff;background:var(--secondary);border:none;border-radius:8px;cursor:pointer;transition:background .15s,transform .1s,box-shadow .15s;font-family:inherit;flex-shrink:0;}
+  #calc-btn:hover{background:#1d4ed8;}
+  #calc-btn:active{transform:translateY(1px);}
+  #calc-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.35);}
+  @keyframes resultPulse{0%{background-color:rgba(37,99,235,.12);}100%{background-color:transparent;}}
+  .result-out.pulse{animation:resultPulse .5s ease-out;border-radius:8px;}
+  footer a{color:var(--secondary);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+
+  .result-area{margin-top:4px;}
+  .result-card{display:none;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;}
+  .result-card.active{display:block;}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+  .card-head h3{margin:0;font-size:18px;font-weight:700;color:var(--primary);}
+  .card-head .uses{font-size:12px;color:var(--fg-muted);}
+  .formula{font-size:13px;color:var(--fg-muted);background:var(--muted);border-radius:8px;padding:9px 12px;margin:12px 0 18px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.6;}
+
+  .result-out:focus{outline:none;}
+  .result-number{font-size:34px;font-weight:700;color:#1d4ed8;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1;}
+  .result-number .unit{font-size:15px;font-weight:500;color:var(--fg-muted);margin-left:6px;}
+  .result-secondary{font-size:13px;color:var(--fg-muted);margin-top:4px;font-variant-numeric:tabular-nums;}
+  .placeholder{font-size:15px;color:var(--fg-muted);padding:14px 0;}
+
+  .verdict{display:inline-flex;align-items:center;gap:6px;margin-top:16px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;}
+  .verdict svg{flex-shrink:0;}
+  .verdict.ok{background:rgba(5,150,105,.1);color:var(--ok);}
+  .verdict.warn{background:rgba(180,71,9,.1);color:red;font-size:14px;}
+  .verdict.info{background:var(--muted);color:var(--fg-muted);}
+
+  .result-row+.result-row{margin-top:18px;padding-top:18px;border-top:1px dashed var(--border);}
+
+  .mipi-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:14px;}
+  .mipi-table th,.mipi-table td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);}
+  .mipi-table th{font-size:12px;color:var(--fg-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;background:var(--muted);}
+  .mipi-table td.num{font-variant-numeric:tabular-nums;white-space:nowrap;color:#1d4ed8;}
+  .mipi-table tr.consistent{background:rgba(5,150,105,.06);}
+  .mipi-table tr.consistent td:first-child{box-shadow:inset 3px 0 0 var(--ok);}
+  .mipi-table .muted{color:var(--fg-muted);}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;}
+  .badge.ok{background:rgba(5,150,105,.15);color:var(--ok);}
+  .badge.over{background:rgba(220,38,38,.15);color:#dc2626;}
+
+  footer{margin-top:32px;font-size:12px;color:var(--fg-muted);text-align:center;line-height:1.6;}
+
+  @media (max-width:600px){
+    .input-grid,.vb-grid{grid-template-columns:1fr;}
+    .result-number{font-size:28px;}
+    .panel,.result-card{padding:16px;}
+    .card-head{align-items:flex-start;}
+    .mipi-table{font-size:13px;}
+    .mipi-table th,.mipi-table td{padding:8px 8px;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="page-head">
+    <h1>JC显示接口信号速率计算器</h1>
+    <p>输入面板参数,选择信号类型,实时计算 eDP / MIPI D-PHY / MIPI C-PHY / LVDS / V-by-One / TTL 的速率与时钟,并对照规格上限给出合规提示。</p>
+  </header>
+
+  <!-- 共享输入面板 -->
+  <section class="panel" aria-label="面板参数输入">
+    <h2>面板参数</h2>
+    <div class="input-grid">
+      <div class="field">
+        <label for="htotal">水平总时序</label>
+        <div class="input-wrap">
+          <input id="htotal" type="number" inputmode="decimal" min="1" step="1" value="2560" placeholder="2200" autocomplete="off">
+          <span class="unit">px</span>
+        </div>
+        <div class="error" id="htotal-error" aria-live="polite"></div>
+      </div>
+      <div class="field">
+        <label for="vtotal">垂直总时序</label>
+        <div class="input-wrap">
+          <input id="vtotal" type="number" inputmode="decimal" min="1" step="1" value="1600" placeholder="1125" autocomplete="off">
+          <span class="unit">px</span>
+        </div>
+        <div class="error" id="vtotal-error" aria-live="polite"></div>
+      </div>
+      <div class="field">
+        <label for="refresh">刷新率</label>
+        <div class="input-wrap">
+          <input id="refresh" type="number" inputmode="decimal" min="1" step="1" value="60" placeholder="60" autocomplete="off">
+          <span class="unit">Hz</span>
+        </div>
+        <div class="error" id="refresh-error" aria-live="polite"></div>
+      </div>
+      <div class="field">
+        <label for="depth">色深</label>
+        <div class="input-wrap">
+          <select id="depth">
+            <option value="8" selected>8 bit</option>
+            <option value="10">10 bit</option>
+            <option value="12">12 bit</option>
+          </select>
+        </div>
+        <div class="error" aria-live="polite"></div>
+      </div>
+      <div class="field" id="lane-field">
+        <label id="lane-label" for="lane">Lane 数</label>
+        <div class="input-wrap" id="lane-number-wrap">
+          <select id="lane">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="16">16</option>
+            <option value="32">32</option>
+          </select>
+        </div>
+        <div class="input-wrap" id="lvds-link-wrap" style="display:none">
+          <select id="lvds-link">
+            <option value="1">单通道 (Single Channel)</option>
+            <option value="2">双通道 (Dual Channel)</option>
+            <option value="4">四通道 (Quad Channel)</option>
+            <option value="8">八通道 (Octal Channel)</option>
+          </select>
+        </div>
+        <div class="error" id="lane-error" aria-live="polite"></div>
+      </div>
+
+      <!-- V-by-One 专属(仅 V-by-One 选中时显示) -->
+      <div id="vbyone-fields">
+        <div class="fieldset-note">V-by-One 专属参数(仅当选择 V-by-One 时使用,严格按文档:固定 30bit、保留 ×1.2,不使用总时序/色深)</div>
+        <div class="vb-grid">
+          <div class="field">
+            <label for="hres">水平分辨率</label>
+            <div class="input-wrap">
+              <input id="hres" type="number" inputmode="decimal" min="1" step="1" value="3840" placeholder="3840" autocomplete="off">
+              <span class="unit">px</span>
+            </div>
+            <div class="error" id="hres-error" aria-live="polite"></div>
+          </div>
+          <div class="field">
+            <label for="vres">垂直分辨率</label>
+            <div class="input-wrap">
+              <input id="vres" type="number" inputmode="decimal" min="1" step="1" value="2160" placeholder="2160" autocomplete="off">
+              <span class="unit">px</span>
+            </div>
+            <div class="error" id="vres-error" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 信号类型选择 -->
+  <section class="panel" aria-label="信号类型选择">
+    <div class="selector-row">
+      <label for="signal-type">信号类型</label>
+      <select id="signal-type">
+        <option value="dp">eDP</option>
+        <option value="mipi">MIPI D-PHY</option>
+        <option value="cphy">MIPI C-PHY</option>
+        <option value="lvds">LVDS</option>
+        <option value="vbyone">V-by-One</option>
+        <option value="ttl">TTL</option>
+      </select>
+      <button id="calc-btn" type="button">计算</button>
+    </div>
+  </section>
+
+  <!-- 结果卡片(同时仅显示一个) -->
+  <section class="result-area" aria-live="polite" aria-atomic="true">
+    <div class="result-card" id="card-dp">
+      <div class="card-head"><h3>eDP</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率 · 色深 · Lane</span></div>
+      <div class="formula">DP 1.4:DSI(bps) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) × (色深(bit) × 3) × 1.25 / Lane<br>DP 2.0:DSI(bps) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) × (色深(bit) × 3) × 1.05 / Lane</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+    <div class="result-card" id="card-mipi">
+      <div class="card-head"><h3>MIPI D-PHY</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率 · 色深 · Lane</span></div>
+      <div class="formula">DSI(bps) = (水平总时序(Pixels) + 加数) × 垂直总时序(Pixels) × 刷新率(Hz) × 色深(bit) × 3 / Lane　(加数见下表)</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+    <div class="result-card" id="card-lvds">
+      <div class="card-head"><h3>LVDS</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率 · Link 数(不使用色深)</span></div>
+      <div class="formula">像素时钟(MHz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) ÷ 10⁶<br>Single-link LVDS像素时钟(PCLK)(MHz) = 像素时钟(MHz) ÷ Link 数</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+    <div class="result-card" id="card-vbyone">
+      <div class="card-head"><h3>V-by-One</h3><span class="uses">使用:水平分辨率 · 垂直分辨率 · 刷新率 · Lane(固定 30bit,严格按文档)</span></div>
+      <div class="formula">每 Lane 数据速率(bps) = 水平分辨率(Pixels) × 垂直分辨率(Pixels) × 1.2 × 30(bit) × 刷新率(Hz) / Lane</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+    <div class="result-card" id="card-cphy">
+      <div class="card-head"><h3>MIPI C-PHY</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率 · 色深 · Lane</span></div>
+      <div class="formula">像素时钟(MHz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) ÷ 10⁶<br>DSI 速率(sps) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) × 3 × 色深(bit) × 1.2 / (Lane × 2.28)</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+    <div class="result-card" id="card-ttl">
+      <div class="card-head"><h3>TTL</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率(不使用色深 / Lane)</span></div>
+      <div class="formula">时钟频率(Hz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz)(单边沿采样,即传输速率)</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
+  </section>
+
+  <footer>
+    作者:AomeNero · GitHub:<a href="https://github.com/AomeNero/RateCalculation" target="_blank" rel="noopener noreferrer">AomeNero/RateCalculation</a><br>
+    规格阈值:LVDS 单链路 ≤160 / 双链路 ≤320 / 四链路 ≤640 / 八链路 ≤1280 MHz · V-by-One ≤3.75 Gbps/Lane · MIPI C-PHY 像素时钟 ≤320 MHz(1×2832)/ ≤640 MHz(2×2832) · TTL ≤100 Mbps
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var OK_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>';
+  var WARN_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 2.2L14.8 14H1.2z"/><path d="M8 6.3v3.2" stroke-linecap="round"/><circle cx="8" cy="11.7" r=".9" fill="currentColor" stroke="none"/></svg>';
+
+  var select = document.getElementById('signal-type');
+  var ALL_NUM_FIELDS = ['htotal','vtotal','refresh','lane','hres','vres'];
+  var touched = {};
+
+  var RULES = {
+    htotal:{integer:false}, vtotal:{integer:false}, refresh:{integer:false},
+    lane:{integer:true, min:1}, hres:{integer:false}, vres:{integer:false}
+  };
+  var REQUIRED = {
+    dp:['htotal','vtotal','refresh','depth','lane'],
+    mipi:['htotal','vtotal','refresh','depth','lane'],
+    lvds:['htotal','vtotal','refresh','lvds-link'],
+    vbyone:['hres','vres','refresh','lane'],
+    cphy:['htotal','vtotal','refresh','depth','lane'],
+    ttl:['htotal','vtotal','refresh']
+  };
+  var LVDS_LINKS = {
+    '1':{name:'单通道', low:10, high:160},
+    '2':{name:'双通道', low:20, high:320},
+    '4':{name:'四通道', low:40, high:640},
+    '8':{name:'八通道', low:80, high:1280}
+  };
+
+  function $(id){return document.getElementById(id);}
+  function val(id){var el=$(id);return el?el.value.trim():'';}
+  function depthVal(){return parseInt($('depth').value,10);}
+  function setError(id,msg){var f=$(id).closest('.field');var e=$(id+'-error');if(e)e.textContent=msg;if(f)f.classList.add('invalid');}
+  function clearError(id){var f=$(id).closest('.field');var e=$(id+'-error');if(e)e.textContent='';if(f)f.classList.remove('invalid');}
+
+  function validateField(id, showErr){
+    var rule = RULES[id] || {integer:false};
+    var raw = val(id);
+    if(raw===''){ if(showErr)setError(id,'请输入数值'); return {ok:false}; }
+    if(!/^\d*\.?\d+$/.test(raw)){ if(showErr)setError(id,'请输入有效数字'); return {ok:false}; }
+    var v = parseFloat(raw);
+    if(!isFinite(v)){ if(showErr)setError(id,'请输入有效数字'); return {ok:false}; }
+    if(rule.integer && !Number.isInteger(v)){ if(showErr)setError(id,'需为整数'); return {ok:false}; }
+    var min = rule.integer ? (rule.min!=null?rule.min:1) : 0;
+    if(rule.integer ? (v<min) : (v<=0)){ if(showErr)setError(id, rule.integer ? ('需 ≥ '+min) : '需大于 0'); return {ok:false}; }
+    clearError(id);
+    return {ok:true, value:v};
+  }
+
+  function showCard(type){
+    var cards = document.querySelectorAll('.result-card');
+    for(var i=0;i<cards.length;i++) cards[i].classList.remove('active');
+    var card = $('card-'+type); if(card) card.classList.add('active');
+    var vb = $('vbyone-fields'); if(vb) vb.classList.toggle('show', type==='vbyone');
+    updateLaneField(type);
+  }
+  function updateLaneField(type){
+    var isLvds = type==='lvds';
+    var isTtl = type==='ttl';
+    var field=$('lane-field');
+    if(isTtl){ if(field) field.style.display='none'; return; }
+    if(field) field.style.display='';
+    var numWrap=$('lane-number-wrap'); if(numWrap) numWrap.style.display = isLvds ? 'none' : '';
+    var linkWrap=$('lvds-link-wrap'); if(linkWrap) linkWrap.style.display = isLvds ? '' : 'none';
+    var lab=$('lane-label');
+    if(lab){ lab.textContent = isLvds ? 'Link 数' : 'Lane 数'; lab.setAttribute('for', isLvds ? 'lvds-link' : 'lane'); }
+  }
+
+  function fmtBps(bps){
+    var g = bps/1e9;
+    if(g>=1) return {primary:g.toFixed(2), unit:'Gbps/Lane', secondary:(bps/1e6).toLocaleString('en-US',{maximumFractionDigits:2})+' Mbps/Lane'};
+    return {primary:(bps/1e6).toFixed(2), unit:'Mbps/Lane', secondary:Math.round(bps).toLocaleString('en-US')+' bps/Lane'};
+  }
+  function numBlock(primary,unit,secondary){
+    return '<div class="result-number">'+primary+'<span class="unit">'+unit+'</span></div>'
+      + (secondary?'<div class="result-secondary">'+secondary+'</div>':'');
+  }
+  function verdict(level,text){
+    var icon = level==='ok'?OK_ICON:(level==='warn'?WARN_ICON:'');
+    return '<div class="verdict '+level+'">'+icon+'<span>'+text+'</span></div>';
+  }
+  // eDP 挡位适配:在挡位集合中取不小于速率的最小挡位,返回表格行
+  function gearRow(label, gears, rateGbps){
+    var fit=null;
+    for(var i=0;i<gears.length;i++){ if(rateGbps<=gears[i]+1e-9){ fit=gears[i]; break; } }
+    if(fit!==null){ return '<tr class="consistent"><td>'+label+'</td><td>'+fit+' Gbps <span class="badge ok">'+OK_ICON+'适用</span></td></tr>'; }
+    return '<tr><td>'+label+'</td><td><span class="badge over">超规</span></td></tr>';
+  }
+
+  var RENDER = {
+    dp:function(v){
+      var base = v.htotal*v.vtotal*v.refresh*(v.depth*3);
+      var r14g = base*1.25/v.lane/1e9;
+      var r20g = base*1.05/v.lane/1e9;
+      var out = '';
+      out += '<div class="result-row">'+numBlock(r14g.toFixed(2),'Gbps/Lane','DP 1.4 速率(×1.25)')+'</div>';
+      out += '<div class="result-row">'+numBlock(r20g.toFixed(2),'Gbps/Lane','DP 2.0 速率(×1.05)')+'</div>';
+      out += '<table class="mipi-table"><thead><tr><th>接口模式</th><th>适配挡位</th></tr></thead><tbody>';
+      out += gearRow('DP(DP 1.4)',[1.62,2.7,5.4,8.1],r14g);
+      out += gearRow('ALPDP(DP 1.4)',[1.62,2.16,2.7,3.24,3.78,4.32,5.4,8.1],r14g);
+      if(r14g > 8.1){ out += gearRow('ALPDP(DP 2.0)',[8.1,10,13.5,20],r20g); }
+      out += '</tbody></table>';
+      return out;
+    },
+    mipi:function(v){
+      var rows=[
+        {band:'&lt; 1.5 Gbps',mode:'非离散',off:95,grp:'low'},
+        {band:'&lt; 1.5 Gbps',mode:'离散',off:190,grp:'low'},
+        {band:'&gt; 1.5 Gbps',mode:'非离散',off:145,grp:'high'},
+        {band:'&gt; 1.5 Gbps',mode:'离散',off:255,grp:'high'}
+      ];
+      var body='', maxCons=0;
+      for(var i=0;i<rows.length;i++){
+        var r=rows[i];
+        var bps=(v.htotal+r.off)*v.vtotal*v.refresh*(v.depth*3)/v.lane;
+        var f=fmtBps(bps);
+        var cons = r.grp==='low' ? (bps<1.5e9) : (bps>=1.5e9);
+        if(cons && bps>maxCons) maxCons=bps;
+        body+='<tr class="'+(cons?'consistent':'')+'">'
+          +'<td>'+r.band+'</td><td>'+r.mode+'</td><td>+'+r.off+'</td>'
+          +'<td class="num">'+f.primary+' '+f.unit+'</td>'
+          +'<td>'+(cons?'<span class="badge ok">'+OK_ICON+'适用</span>':'<span class="muted">—</span>')+'</td></tr>';
+      }
+      var limitVd = maxCons>2.5e9
+        ? verdict('warn','DSI 速率 '+(maxCons/1e9).toFixed(2)+' Gbps 超出上限 2.5 Gbps (>1.5Gbps )')
+        : verdict('ok','DSI 速率在规格内(上限 2.5 Gbps/Lane)');
+      return '<table class="mipi-table"><thead><tr><th>档位</th><th>时钟模式</th><th>水平时序加数</th><th>DSI</th><th>自洽</th></tr></thead><tbody>'+body+'</tbody></table>'
+        + limitVd;
+    },
+    lvds:function(v){
+      var hz=v.htotal*v.vtotal*v.refresh;
+      var totalMhz=hz/1e6;
+      var perLinkMhz=totalMhz/v.link;
+      var cfg=LVDS_LINKS[String(v.link)] || LVDS_LINKS['1'];
+      var vd;
+      if(totalMhz>cfg.high){ vd=verdict('warn','超出'+cfg.name+'上限('+cfg.high+' MHz),建议增加通道数'); }
+      else if(totalMhz<cfg.low){ vd=verdict('warn','低于'+cfg.name+'下限('+cfg.low+' MHz),可减少通道数'); }
+      else { vd=verdict('ok','在'+cfg.name+'规格内('+cfg.low+'–'+cfg.high+' MHz @0.1MHz 步进)'); }
+      return numBlock(perLinkMhz.toFixed(2),'MHz','Single-link LVDS像素时钟(PCLK)')
+        + '<div class="result-secondary">像素时钟:'+totalMhz.toFixed(2)+' MHz</div>'
+        + vd;
+    },
+    vbyone:function(v){
+      var bps=v.hres*v.vres*1.2*30*v.refresh/v.lane;
+      var f=fmtBps(bps);
+      var vd = (bps/1e9)<=3.75 ? verdict('ok','在规格内(≤ 3.75 Gbps/Lane)') : verdict('warn','超规格(> 3.75 Gbps/Lane)');
+      return numBlock(f.primary,f.unit,f.secondary)+vd;
+    },
+    cphy:function(v){
+      var hz=v.htotal*v.vtotal*v.refresh;
+      var mhz=hz/1e6;
+      var sps=hz*3*v.depth*1.2/(v.lane*2.28);
+      var dPrimary, dUnit;
+      if(sps/1e9>=1){ dPrimary=(sps/1e9).toFixed(2); dUnit='Gsps/Lane'; }
+      else { dPrimary=(sps/1e6).toFixed(2); dUnit='Msps/Lane'; }
+      var vd;
+      if(mhz>640){ vd=verdict('warn','超出 361 平台规格上限(640 MHz)'); }
+      else if(mhz>320){ vd=verdict('ok','在规格内,建议 2个 2832、4个 TTL(上限 640 MHz)'); }
+      else { vd=verdict('ok','在规格内,建议 1个 2832、2个 TTL(上限 320 MHz)'); }
+      var dsiVd = sps>1.5e9 ? verdict('warn','DSI 速率超出上限 1.5 Gsps/Lane') : verdict('ok','DSI 速率 ≤ 1.5 Gsps/Lane,在规格内');
+      return '<div class="result-row">'+numBlock(mhz.toFixed(2),'MHz','像素时钟')+vd+'</div>'
+        + '<div class="result-row">'+numBlock(dPrimary,dUnit,'DSI 速率(符号 / 秒)')+dsiVd+'</div>';
+    },
+    ttl:function(v){
+      var hz=v.htotal*v.vtotal*v.refresh;
+      var mhz=hz/1e6;
+      var vd = mhz<=100 ? verdict('ok','≤ 100 Mbps,在规格内') : verdict('warn','> 100 Mbps,超规格');
+      return numBlock(mhz.toFixed(2),'MHz / Mbps','时钟频率 = 传输速率(单边沿采样)')+vd;
+    }
+  };
+
+  function recalc(){
+    var type = select.value;
+    showCard(type);
+    var req = REQUIRED[type];
+    var vals = {};
+    var allOk = true, anyTouchedInvalid = false;
+    for(var i=0;i<req.length;i++){
+      var f=req[i];
+      if(f==='depth'){ vals.depth=depthVal(); continue; }
+      if(f==='lvds-link'){ vals.link=parseInt($('lvds-link').value,10); continue; }
+      var r = validateField(f, !!touched[f]);
+      if(r.ok){ vals[f]=r.value; }
+      else { allOk=false; if(touched[f]) anyTouchedInvalid=true; }
+    }
+    for(var j=0;j<ALL_NUM_FIELDS.length;j++){ if(req.indexOf(ALL_NUM_FIELDS[j])===-1) clearError(ALL_NUM_FIELDS[j]); }
+
+    var card = $('card-'+type);
+    var out = card.querySelector('.result-out');
+    if(!allOk){
+      out.innerHTML = anyTouchedInvalid
+        ? '<div class="placeholder">请先修正高亮的输入项</div>'
+        : '<div class="placeholder">请在上方输入面板参数</div>';
+      return;
+    }
+    out.innerHTML = RENDER[type](vals);
+  }
+
+  // 事件绑定
+  var inputs = document.querySelectorAll('input, select');
+  for(var k=0;k<inputs.length;k++){
+    (function(el){
+      el.addEventListener('input', function(){
+        if(el.id && RULES.hasOwnProperty(el.id)) touched[el.id]=true;
+        recalc();
+      });
+      el.addEventListener('change', recalc);
+    })(inputs[k]);
+  }
+  // 计算按钮:强制校验全部字段并重算,附带反馈动效
+  var calcBtn = document.getElementById('calc-btn');
+  calcBtn.addEventListener('click', function(){
+    var type = select.value;
+    var req = REQUIRED[type];
+    for(var i=0;i<req.length;i++){ if(req[i]!=='depth') touched[req[i]]=true; }
+    recalc();
+    var out = $('card-'+type).querySelector('.result-out');
+    out.classList.remove('pulse'); void out.offsetWidth; out.classList.add('pulse');
+  });
+  // 初始计算
+  recalc();
+})();
+</script>
+</body>
+</html>
