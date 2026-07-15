@@ -67,7 +67,7 @@
 ## 📁 项目结构
 
 ```
-RateCalculation/
+DSI-Calculation/
 ├── 显示接口信号计算器.html          # 单文件计算工具(HTML + CSS + JS)
 ├── 显示接口信号规格&计算公式汇总.md  # 完整公式 / 规格 / 判定规则文档
 ├── README.md
@@ -107,4 +107,4 @@ RateCalculation/
 
 ## 👤 作者
 
-**AomeNero** · <https://github.com/AomeNero/RateCalculation>
+**AomeNero** · <https://github.com/AomeNero/DSI-Calculation>
