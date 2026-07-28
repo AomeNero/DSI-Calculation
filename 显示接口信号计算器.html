@@ -558,13 +558,29 @@
   function updateLaneField(type){
     var isLvds = type==='lvds';
     var isTtl = type==='ttl';
+    var isHdmi = type==='hdmi';
     var field=$('lane-field');
-    if(isTtl){ if(field) field.style.display='none'; return; }
-    if(field) field.style.display='';
-    var numWrap=$('lane-number-wrap'); if(numWrap) numWrap.style.display = isLvds ? 'none' : '';
-    var linkWrap=$('lvds-link-wrap'); if(linkWrap) linkWrap.style.display = isLvds ? '' : 'none';
-    var lab=$('lane-label');
-    if(lab){ lab.textContent = isLvds ? 'Link 数' : 'Lane 数'; lab.setAttribute('for', isLvds ? 'lvds-link' : 'lane'); }
+    if(isTtl || isHdmi){ if(field) field.style.display='none'; } else{
+      if(field) field.style.display='';
+      var numWrap=$('lane-number-wrap'); if(numWrap) numWrap.style.display = isLvds ? 'none' : '';
+      var linkWrap=$('lvds-link-wrap'); if(linkWrap) linkWrap.style.display = isLvds ? '' : 'none';
+      var lab=$('lane-label');
+      if(lab){ lab.textContent = isLvds ? 'Link 数' : 'Lane 数'; lab.setAttribute('for', isLvds ? 'lvds-link' : 'lane'); }
+    }
+    // HDMI:固定色深10bit并禁用
+    var depthEl = $('depth');
+    if(depthEl){
+      if(isHdmi){
+        depthEl.value = '10';
+        depthEl.disabled = true;
+        depthEl.style.backgroundColor = 'var(--muted)';
+        depthEl.style.cursor = 'not-allowed';
+      } else{
+        depthEl.disabled = false;
+        depthEl.style.backgroundColor = '';
+        depthEl.style.cursor = '';
+      }
+    }
   }
 
   function fmtBps(bps){
