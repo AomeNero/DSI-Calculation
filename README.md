@@ -78,7 +78,7 @@
 - **LVDS**:Lane 数切换为 **Link 数**(单 / 双 / 四 / 八通道),不使用色深。
 - **TTL**:隐藏 Lane 数,不使用色深。
 - **V-by-One**:额外输入 **水平 / 垂直分辨率**(默认 3840 / 2160),固定 30bit、保留 ×1.2,不使用总时序 / 色深。
-- **HDMI**:固定 10bit、Symbol per clock=1,不使用色深/Lane。
+- **HDMI**:色深固定 10bit(不可修改)、Symbol per clock=1,隐藏 Lane 数。
 
 ---
 
