@@ -4,7 +4,17 @@
 
 输入一组面板参数,通过下拉框切换信号类型,即可实时查看该接口的速率/时钟结果、规格是否超标,以及最合适的挡位 / 通道配置。
 
+<p align="center">
+  <img src="demo.gif" alt="DSI计算器演示" width="800">
+</p>
+
 ---
+
+
+
+![](D:\Code\DSI-Calculation\demo.gif)
+
+
 
 ## ✨ 功能特性
 
