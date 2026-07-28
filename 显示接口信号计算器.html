@@ -116,6 +116,42 @@
     .mipi-table{font-size:13px;}
     .mipi-table th,.mipi-table td{padding:8px 8px;}
   }
+  /* Timing 折叠面板 */
+  .timing-panel{padding:0;overflow:hidden;}
+  .timing-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;cursor:pointer;user-select:none;
+    transition:background-color .15s;
+  }
+  .timing-header:hover{background-color:var(--muted);}
+  .timing-header h2{margin:0;font-size:14px;font-weight:600;color:var(--fg);}
+  .timing-arrow{
+    font-size:12px;color:var(--fg-muted);transition:transform .2s;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;
+  }
+  .timing-arrow.open{transform:rotate(90deg);}
+  .timing-content{
+    max-height:0;overflow:hidden;transition:max-height .3s ease-out,padding .3s;
+    padding:0 20px;
+  }
+  .timing-content.open{
+    max-height:400px;padding:0 20px 20px;
+  }
+  .timing-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .timing-table th,.timing-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  .timing-table th{font-size:12px;font-weight:600;color:var(--fg-muted);background:var(--muted);}
+  .timing-table td:first-child{font-size:13px;font-weight:500;color:var(--fg-muted);white-space:nowrap;}
+  .timing-table .input-wrap{position:relative;display:flex;align-items:center;max-width:140px;}
+  .timing-table .input-wrap input{
+    width:100%;padding:8px 10px;font-size:14px;color:var(--fg);background:var(--card);
+    border:1px solid var(--border);border-radius:6px;transition:border-color .15s,box-shadow .15s;
+    font-family:inherit;
+  }
+  .timing-table .input-wrap input{padding-right:36px;}
+  .timing-table .input-wrap .unit{position:absolute;right:10px;color:var(--fg-muted);font-size:12px;pointer-events:none;}
+  .timing-table .input-wrap input:focus{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px rgba(37,99,235,.15);}
+
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
 </style>
 </head>
@@ -125,6 +161,52 @@
     <h1>JC显示接口信号速率计算器</h1>
     <p>输入面板参数,选择信号类型,实时计算 eDP / MIPI D-PHY / MIPI C-PHY / LVDS / V-by-One / TTL 的速率与时钟,并对照规格上限给出合规提示。</p>
   </header>
+
+  <!-- Timing 设置（可折叠） -->
+  <section class="panel timing-panel" aria-label="Timing 设置">
+    <div class="timing-header" id="timing-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="timing-content">
+      <h2>Timing 设置</h2>
+      <span class="timing-arrow" id="timing-arrow">▶</span>
+    </div>
+    <div class="timing-content" id="timing-content">
+      <table class="timing-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>水平 [Horizontal]</th>
+            <th>垂直 [Vertical]</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>总时序 [Total]</td>
+            <td><div class="input-wrap"><input id="h_total_timing" type="number" inputmode="decimal" min="1" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+            <td><div class="input-wrap"><input id="v_total_timing" type="number" inputmode="decimal" min="1" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+          </tr>
+          <tr>
+            <td>有效分辨率 [Active]</td>
+            <td><div class="input-wrap"><input id="h_active" type="number" inputmode="decimal" min="1" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+            <td><div class="input-wrap"><input id="v_active" type="number" inputmode="decimal" min="1" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+          </tr>
+          <tr>
+            <td>后肩 [Back Porch]</td>
+            <td><div class="input-wrap"><input id="h_bp" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+            <td><div class="input-wrap"><input id="v_bp" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+          </tr>
+          <tr>
+            <td>前肩 [Front Porch]</td>
+            <td><div class="input-wrap"><input id="h_fp" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+            <td><div class="input-wrap"><input id="v_fp" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+          </tr>
+          <tr>
+            <td>同步宽度 [Sync Width]</td>
+            <td><div class="input-wrap"><input id="h_sw" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+            <td><div class="input-wrap"><input id="v_sw" type="number" inputmode="decimal" min="0" step="1" autocomplete="off"><span class="unit">px</span></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
   <!-- 共享输入面板 -->
   <section class="panel" aria-label="面板参数输入">
@@ -224,6 +306,7 @@
         <option value="lvds">LVDS</option>
         <option value="vbyone">V-by-One</option>
         <option value="ttl">TTL</option>
+        <option value="hdmi">HDMI</option>
       </select>
       <button id="calc-btn" type="button">计算</button>
     </div>
@@ -261,17 +344,24 @@
       <div class="formula">时钟频率(Hz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz)(单边沿采样,即传输速率)</div>
       <div class="result-out" tabindex="0"></div>
     </div>
+    <div class="result-card" id="card-hdmi">
+      <div class="card-head"><h3>HDMI</h3><span class="uses">使用:水平总时序 · 垂直总时序 · 刷新率(固定 10bit,Symbol per clock=1)</span></div>
+      <div class="formula">像素时钟(MHz) = 水平总时序 × 垂直总时序 × 刷新率 ÷ 10⁶<br>HDMI 1.4:TMDS时钟(MHz) = 像素时钟 × 1 × 1.25<br>HDMI 2.0:TMDS时钟(MHz) = 像素时钟 × 1 × 1.25 ÷ 4<br>TMDS带宽(Gbps) = TMDS时钟(MHz) × 10(固定10bit) ÷ 1000</div>
+      <div class="result-out" tabindex="0"></div>
+    </div>
   </section>
 
   <footer>
     作者:AomeNero · GitHub:<a href="https://github.com/AomeNero/DSI-Calculation" target="_blank" rel="noopener noreferrer">AomeNero/DSI-Calculation</a><br>
-    规格阈值:LVDS 单链路 ≤160 / 双链路 ≤320 / 四链路 ≤640 / 八链路 ≤1280 MHz · V-by-One ≤3.75 Gbps/Lane · MIPI C-PHY 像素时钟 ≤320 MHz(1×2832)/ ≤640 MHz(2×2832) · TTL ≤100 Mbps
+    规格阈值:LVDS 单链路 ≤160 / 双链路 ≤320 / 四链路 ≤640 / 八链路 ≤1280 MHz · V-by-One ≤3.75 Gbps/Lane · MIPI C-PHY 像素时钟 ≤320 MHz(1×2832)/ ≤640 MHz(2×2832) · TTL ≤100 Mbps · HDMI TMDS带宽 ≤18 Gbps
   </footer>
 </div>
 
 <script>
 (function(){
   'use strict';
+
+  function $(id){return document.getElementById(id);}
 
   var OK_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>';
   var WARN_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 2.2L14.8 14H1.2z"/><path d="M8 6.3v3.2" stroke-linecap="round"/><circle cx="8" cy="11.7" r=".9" fill="currentColor" stroke="none"/></svg>';
@@ -290,7 +380,8 @@
     lvds:['htotal','vtotal','refresh','lvds-link'],
     vbyone:['hres','vres','refresh','lane'],
     cphy:['htotal','vtotal','refresh','depth','lane'],
-    ttl:['htotal','vtotal','refresh']
+    ttl:['htotal','vtotal','refresh'],
+    hdmi:['htotal','vtotal','refresh']
   };
   var LVDS_LINKS = {
     '1':{name:'单通道', low:10, high:160},
@@ -299,11 +390,149 @@
     '8':{name:'八通道', low:80, high:1280}
   };
 
-  function $(id){return document.getElementById(id);}
   function val(id){var el=$(id);return el?el.value.trim():'';}
   function depthVal(){return parseInt($('depth').value,10);}
   function setError(id,msg){var f=$(id).closest('.field');var e=$(id+'-error');if(e)e.textContent=msg;if(f)f.classList.add('invalid');}
   function clearError(id){var f=$(id).closest('.field');var e=$(id+'-error');if(e)e.textContent='';if(f)f.classList.remove('invalid');}
+
+  // ==================== Timing 折叠面板逻辑 ====================
+  var timingToggle = $('timing-toggle');
+  var timingContent = $('timing-content');
+  var timingArrow = $('timing-arrow');
+  var timingStorageKey = 'dsi-calc-timing-open';
+
+  // 恢复折叠状态
+  var savedState = localStorage.getItem(timingStorageKey);
+  if(savedState === 'true'){
+    timingContent.classList.add('open');
+    timingArrow.classList.add('open');
+    timingToggle.setAttribute('aria-expanded', 'true');
+    // 初始化时触发计算
+    setTimeout(updateTimingCalc, 0);
+  }
+
+  // 切换折叠/展开
+  function toggleTiming(){
+    var isOpen = timingContent.classList.toggle('open');
+    timingArrow.classList.toggle('open', isOpen);
+    timingToggle.setAttribute('aria-expanded', String(isOpen));
+    localStorage.setItem(timingStorageKey, String(isOpen));
+    updateTimingCalc();
+  }
+
+  timingToggle.addEventListener('click', toggleTiming);
+  timingToggle.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleTiming(); }
+  });
+
+  // Timing 子参数字段
+  var TIMING_FIELDS = ['h_active','h_bp','h_fp','h_sw','v_active','v_bp','v_fp','v_sw'];
+  var htotalField = $('htotal');
+  var vtotalField = $('vtotal');
+  var hTotalTimingField = $('h_total_timing');
+  var vTotalTimingField = $('v_total_timing');
+
+  // 设置 Total 字段为只读
+  if(hTotalTimingField){
+    hTotalTimingField.readOnly = true;
+    hTotalTimingField.style.backgroundColor = 'var(--muted)';
+    hTotalTimingField.style.cursor = 'not-allowed';
+  }
+  if(vTotalTimingField){
+    vTotalTimingField.readOnly = true;
+    vTotalTimingField.style.backgroundColor = 'var(--muted)';
+    vTotalTimingField.style.cursor = 'not-allowed';
+  }
+
+  // 解析 Timing 子参数值
+  function getTimingValue(id){
+    var el = $(id);
+    if(!el) return null;
+    var raw = el.value.trim();
+    if(raw === '') return null;
+    var v = parseFloat(raw);
+    return (isFinite(v) && v >= 0) ? v : null;
+  }
+
+  // 计算并更新 H_TOTAL/V_TOTAL
+  function updateTimingCalc(){
+    var isOpen = timingContent.classList.contains('open');
+
+    // 计算 H_TOTAL（从子参数）
+    var hActive = getTimingValue('h_active');
+    var hBp = getTimingValue('h_bp');
+    var hFp = getTimingValue('h_fp');
+    var hSw = getTimingValue('h_sw');
+    var hTotal = (hActive !== null && hBp !== null && hFp !== null && hSw !== null)
+      ? (hActive + hBp + hFp + hSw) : null;
+
+    // 计算 V_TOTAL（从子参数）
+    var vActive = getTimingValue('v_active');
+    var vBp = getTimingValue('v_bp');
+    var vFp = getTimingValue('v_fp');
+    var vSw = getTimingValue('v_sw');
+    var vTotal = (vActive !== null && vBp !== null && vFp !== null && vSw !== null)
+      ? (vActive + vBp + vFp + vSw) : null;
+
+    // 自动填充 Total 字段
+    hTotalTimingField.value = hTotal !== null ? hTotal : '';
+    vTotalTimingField.value = vTotal !== null ? vTotal : '';
+
+    // 同步更新到现有字段
+    if(isOpen){
+      // 展开状态：设为只读，有计算值时更新
+      htotalField.readOnly = true;
+      htotalField.style.backgroundColor = 'var(--muted)';
+      htotalField.style.cursor = 'not-allowed';
+      vtotalField.readOnly = true;
+      vtotalField.style.backgroundColor = 'var(--muted)';
+      vtotalField.style.cursor = 'not-allowed';
+      if(hTotal !== null) htotalField.value = hTotal;
+      if(vTotal !== null) vtotalField.value = vTotal;
+    } else{
+      // 折叠状态：恢复可编辑
+      htotalField.readOnly = false;
+      htotalField.style.backgroundColor = '';
+      htotalField.style.cursor = '';
+      vtotalField.readOnly = false;
+      vtotalField.style.backgroundColor = '';
+      vtotalField.style.cursor = '';
+    }
+
+    // 触发主计算器重新计算
+    recalc();
+  }
+
+  // 绑定 Timing 子参数输入事件
+  for(var ti = 0; ti < TIMING_FIELDS.length; ti++){
+    (function(id){
+      var el = $(id);
+      if(el){
+        el.addEventListener('input', updateTimingCalc);
+        el.addEventListener('change', updateTimingCalc);
+      }
+    })(TIMING_FIELDS[ti]);
+  }
+
+  // 回车键跳转到下一个输入框
+  var TIMING_INPUT_ORDER = ['h_active','v_active','h_bp','v_bp','h_fp','v_fp','h_sw','v_sw'];
+  for(var tj = 0; tj < TIMING_INPUT_ORDER.length; tj++){
+    (function(id, index){
+      var el = $(id);
+      if(el){
+        el.addEventListener('keydown', function(e){
+          if(e.key === 'Enter'){
+            e.preventDefault();
+            var nextIndex = (index + 1) % TIMING_INPUT_ORDER.length;
+            var nextEl = $(TIMING_INPUT_ORDER[nextIndex]);
+            if(nextEl) nextEl.focus();
+          }
+        });
+      }
+    })(TIMING_INPUT_ORDER[tj], tj);
+  }
+
+  // ==================== 主计算器逻辑 ====================
 
   function validateField(id, showErr){
     var rule = RULES[id] || {integer:false};
@@ -438,6 +667,42 @@
       var mhz=hz/1e6;
       var vd = mhz<=100 ? verdict('ok','≤ 100 Mbps,在规格内') : verdict('warn','> 100 Mbps,超规格');
       return numBlock(mhz.toFixed(2),'MHz / Mbps','时钟频率 = 传输速率(单边沿采样)')+vd;
+    },
+    hdmi:function(v){
+      // HDMI 规格
+      // 固定 10bit，Color Depth Factor = 1.25，Symbol per clock = 1
+      var vidClk = v.htotal * v.vtotal * v.refresh / 1e6; // MHz
+      // HDMI 1.4
+      var tmds14 = vidClk * 1 * 1.25; // MHz
+      var tmdsBw14 = tmds14 * 10 / 1000; // Gbps (10bit固定)
+      // HDMI 2.0
+      var tmds20 = vidClk * 1 * 1.25 / 4; // MHz
+      var tmdsBw20 = tmds20 * 10 / 1000; // Gbps (10bit固定)
+
+      var out = '';
+      // 像素时钟
+      out += '<div class="result-row">'+numBlock(vidClk.toFixed(2),'MHz','像素时钟')+'</div>';
+
+      // HDMI 1.4 / 2.0 对比表格
+      var vd14 = tmdsBw14 <= 18;
+      var vd20 = tmdsBw20 <= 18;
+      out += '<table class="mipi-table"><thead><tr><th>规格</th><th>像素时钟</th><th>TMDS带宽</th><th>状态</th></tr></thead><tbody>';
+      out += '<tr class="'+(vd14?'consistent':'')+'"><td>HDMI 1.4</td><td class="num">'+tmds14.toFixed(2)+' MHz</td><td class="num">'+tmdsBw14.toFixed(2)+' Gbps</td><td>'+(vd14?'<span class="badge ok">'+OK_ICON+'合规</span>':'<span class="badge over">超规</span>')+'</td></tr>';
+      out += '<tr class="'+(vd20?'consistent':'')+'"><td>HDMI 2.0</td><td class="num">'+tmds20.toFixed(2)+' MHz</td><td class="num">'+tmdsBw20.toFixed(2)+' Gbps</td><td>'+(vd20?'<span class="badge ok">'+OK_ICON+'合规</span>':'<span class="badge over">超规</span>')+'</td></tr>';
+      out += '</tbody></table>';
+
+      // 总体规格判定
+      if(!vd14 && !vd20){
+        out += verdict('warn','HDMI 1.4 和 2.0 TMDS带宽均超出规格(> 18 Gbps)');
+      } else if(!vd14){
+        out += verdict('warn','HDMI 1.4 TMDS带宽超出规格,建议使用 HDMI 2.0');
+      } else if(!vd20){
+        out += verdict('ok','HDMI 1.4 合规,HDMI 2.0 超规但可通过降频使用');
+      } else {
+        out += verdict('ok','HDMI 1.4 和 2.0 TMDS带宽均在规格内(≤ 18 Gbps)');
+      }
+
+      return out;
     }
   };
 
