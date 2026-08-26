@@ -2,6 +2,8 @@
 
 > 一个**单文件、离线、零依赖**的浏览器工具,用于计算常见显示接口(eDP / MIPI D-PHY / MIPI C-PHY / LVDS / V-by-One / TTL / HDMI)的信号速率与时钟,并对照规格上限给出**合规判定**与**挡位适配建议**。
 
+> **当前版本:v1.2.0** · 版本变更记录见 [CHANGELOG.md](./CHANGELOG.md)
+
 输入一组面板参数,通过下拉框切换信号类型,即可实时查看该接口的速率/时钟结果、规格是否超标,以及最合适的挡位 / 通道配置。
 
 <p align="center">
@@ -9,12 +11,6 @@
 </p>
 
 ---
-
-
-
-![](D:\Code\DSI-Calculation\demo.gif)
-
-
 
 ## ✨ 功能特性
 
@@ -49,7 +45,7 @@
 | **eDP** | `H×V×刷新率×(色深×3)×{1.25 \| 1.05}/Lane`(DP 1.4 / DP 2.0) | DP 1.4 / DP 2.0 速率 + 挡位适配 | DP 1.4:1.62/2.7/5.4/8.1;ALPDP 1.4:含 2.16/3.24/3.78/4.32;ALPDP 2.0:8.1/10/13.5/20 Gbps |
 | **MIPI D-PHY** | `(H+加数)×V×刷新率×色深×3/Lane`(加数 +95/+190/+145/+255) | DSI 速率 | DSI ≤ **2.5 Gbps/Lane** |
 | **MIPI C-PHY** | 像素时钟=`H×V×刷新率÷10⁶`;DSI=`H×V×刷新率×3×色深×1.2/(Lane×2.28)` | 像素时钟 + DSI(sps) | 像素时钟 ≤640 MHz(361 平台);DSI ≤ **1.5 Gsps/Lane** |
-| **LVDS** | 像素时钟=`H×V×刷新率÷10⁶`;PCLK=像素时钟÷Link数 | Single-link PCLK + 总像素时钟 | 单/双/四/八通道:10–160 / 20–320 / 40–640 / 80–1280 MHz(@0.1MHz 步进) |
+| **LVDS** | 像素时钟=`H×V×刷新率÷10⁶`;PCLK=像素时钟÷Link数 | Single-link PCLK + 总像素时钟 | 单/双/四/八通道:10–135 / 20–270 / 40–540 / 80–1080 MHz(@0.1MHz 步进) |
 | **V-by-One** | `水平分辨率×垂直分辨率×1.2×30×刷新率/Lane` | 每 Lane 数据速率 | ≤ **3.75 Gbps/Lane** |
 | **TTL** | `H×V×刷新率`(= 传输速率,单边沿) | 时钟频率 / 速率 | ≤ **100 Mbps** |
 | **HDMI** | 像素时钟=`H×V×刷新率÷10⁶`;TMDS=`像素时钟×1.25`(1.4) / `像素时钟×1.25÷4`(2.0) | TMDS时钟 + TMDS带宽 | TMDS带宽 ≤ **18 Gbps** |
@@ -99,6 +95,8 @@ DSI-Calculation/
 ├── 显示接口信号计算器.html          # 单文件计算工具(HTML + CSS + JS)
 ├── 显示接口信号规格&计算公式汇总.md  # 完整公式 / 规格 / 判定规则文档
 ├── README.md
+├── CHANGELOG.md                    # 版本变更记录
+├── demo.gif                        # 演示动图
 └── docs/
     └── superpowers/specs/
         └── 2026-07-14-rate-calc-tool-design.md   # 设计规格(SPEC)
@@ -123,6 +121,7 @@ DSI-Calculation/
 | 4K60 10bit 8Lane | V-by-One | 3840 / 2160 / 60 / 8 | ≈ 2.24 Gbps/Lane |
 | 1080×1920 60Hz 8bit 3Lane | MIPI C-PHY | 1200 / 1980 / 60 / 8bit / 3 | 142.56 MHz / 600.25 Msps |
 | 800×480 工控屏 | TTL | 928 / 525 / 60 | 29.23 MHz / Mbps |
+| 1080P 60Hz | HDMI | 2200 / 1125 / 60 | 像素时钟 148.5 MHz;1.4:1.86 Gbps / 2.0:0.46 Gbps |
 
 ---
 
