@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>显示接口信号规格与公式汇总</title>
+<style>
+  /* 设计令牌 — 依据 DESIGN.md (Notion-design-analysis),与计算器页面共用 */
+  *,*::before,*::after{box-sizing:border-box;}
+  :root{
+    --primary:#5645d4;
+    --primary-pressed:#4534b3;
+    --navy:#0a1530;
+    --link-blue:#0075de;
+    --canvas:#ffffff;
+    --surface:#f6f5f4;
+    --hairline:#e5e3df;
+    --hairline-soft:#ede9e4;
+    --hairline-strong:#c8c4be;
+    --ink:#1a1a1a;
+    --ink-deep:#000000;
+    --charcoal:#37352f;
+    --slate:#5d5b54;
+    --steel:#787671;
+    --stone:#a4a097;
+    --on-dark:#ffffff;
+    --on-dark-muted:#a4a097;
+    --tint-peach:#ffe8d4;
+    --tint-mint:#d9f3e1;
+    --tint-lavender:#e6e0f5;
+    --tint-cream:#f8f5e8;
+    --green:#1aae39;
+    --green-deep:#0e8a2e;
+    --orange-deep:#793400;
+    --error:#e03131;
+    --r-md:8px;
+    --r-lg:12px;
+  }
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,'Segoe UI','PingFang SC','Microsoft YaHei',Helvetica,Arial,sans-serif;
+    background:var(--surface);color:var(--ink);line-height:1.6;font-size:15px;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  [hidden]{display:none!important;}
+
+  /* ===== Hero band ===== */
+  .hero{
+    position:relative;overflow:hidden;text-align:center;
+    background:var(--navy);color:var(--on-dark);
+    padding:52px 24px 44px;
+  }
+  .hero-badge{
+    display:inline-flex;align-items:center;margin-bottom:16px;
+    background:var(--primary);color:var(--on-dark);
+    font-size:12px;font-weight:600;letter-spacing:.02em;
+    border-radius:999px;padding:3px 10px;
+  }
+  .hero h1{
+    margin:0 0 10px;font-size:clamp(26px,4.2vw,38px);font-weight:600;
+    line-height:1.15;letter-spacing:-.02em;
+  }
+  .hero p{margin:0 auto;max-width:680px;color:var(--on-dark-muted);font-size:14px;line-height:1.7;}
+  .dots{position:absolute;inset:0;pointer-events:none;}
+  .dots i{position:absolute;border-radius:50%;}
+  .dots i:nth-child(1){width:12px;height:12px;background:#ff64c8;top:24%;left:8%;}
+  .dots i:nth-child(2){width:16px;height:16px;background:#f5d75e;top:64%;left:16%;}
+  .dots i:nth-child(3){width:10px;height:10px;background:#2a9d99;top:26%;right:11%;}
+  .dots i:nth-child(4){width:12px;height:12px;background:#1aae39;top:68%;right:19%;}
+  .dots i:nth-child(5){width:14px;height:14px;background:#d6b6f6;top:16%;right:27%;}
+  .dots i:nth-child(6){width:9px;height:9px;background:#dd5b00;top:78%;left:28%;}
+  .dots i:nth-child(7){width:46px;height:46px;border:1.5px solid rgba(255,255,255,.16);top:-14px;right:6%;}
+  .dots i:nth-child(8){width:30px;height:30px;border:1.5px solid rgba(255,255,255,.14);bottom:-10px;left:5%;}
+
+  /* ===== 锚点导航(吸顶胶囊) ===== */
+  .topnav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.92);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--hairline);
+  }
+  .nav-row{
+    max-width:1080px;margin:0 auto;padding:10px 20px;
+    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+  }
+  .nav-row::-webkit-scrollbar{display:none;}
+  .nav-pill{
+    font-family:inherit;font-size:13px;font-weight:500;white-space:nowrap;
+    color:var(--steel);background:transparent;
+    border:1px solid var(--hairline);border-radius:999px;
+    height:34px;padding:0 14px;display:inline-flex;align-items:center;
+    text-decoration:none;
+    transition:color .15s,border-color .15s;
+  }
+  .nav-pill:hover{color:var(--ink);border-color:var(--hairline-strong);}
+  .nav-pill:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(86,69,212,.3);}
+
+  .container{max-width:1080px;margin:0 auto;padding:28px 20px 56px;}
+
+  /* ===== 章节卡片 ===== */
+  .doc-card{
+    background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-lg);
+    padding:28px 32px;margin-bottom:20px;
+    scroll-margin-top:72px;
+  }
+  .doc-card>h2{
+    margin:0 0 18px;font-size:20px;font-weight:600;color:var(--ink-deep);
+    letter-spacing:-.01em;display:flex;align-items:center;gap:10px;
+  }
+  .doc-card>h2 .no{
+    flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+    min-width:34px;height:24px;padding:0 8px;border-radius:6px;
+    background:var(--tint-lavender);color:#391c57;
+    font-size:12px;font-weight:600;letter-spacing:.02em;
+  }
+  .doc-card h3{
+    margin:26px 0 10px;font-size:15px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:8px;
+  }
+  .doc-card h3::before{
+    content:"";width:4px;height:15px;border-radius:2px;background:var(--primary);flex-shrink:0;
+  }
+  .doc-card p{margin:8px 0;color:var(--charcoal);}
+  .muted{color:var(--steel);}
+  small.note{color:var(--stone);font-size:12px;}
+
+  /* 使用参数标签 / 内联代码 */
+  .tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 6px;}
+  .tag{
+    background:var(--tint-lavender);color:#391c57;
+    font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px;white-space:nowrap;
+  }
+  code.k{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--tint-lavender);color:#391c57;
+    font-size:12px;font-weight:600;border-radius:6px;padding:1px 7px;
+  }
+  code.f{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:13px;color:var(--charcoal);
+    background:var(--surface);border-radius:5px;padding:1px 6px;
+  }
+
+  /* 公式块 */
+  .formula{
+    font-size:13px;color:var(--charcoal);background:var(--tint-cream);border-radius:var(--r-md);
+    padding:12px 16px;margin:10px 0 14px;line-height:1.9;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    overflow-x:auto;white-space:pre;
+  }
+
+  /* 提示块 */
+  .note-block{
+    border-left:3px solid var(--hairline-strong);background:var(--surface);
+    border-radius:0 var(--r-md) var(--r-md) 0;
+    padding:10px 14px;margin:10px 0;color:var(--slate);font-size:13.5px;
+  }
+  .note-block p{margin:4px 0;}
+  .note-block ul{margin:4px 0;padding-left:18px;}
+  .note-block li{margin:3px 0;}
+  .warn-block{border-left-color:#dd5b00;background:var(--tint-peach);color:var(--orange-deep);}
+  .ok-block{border-left-color:var(--green);background:var(--tint-mint);color:var(--green-deep);}
+
+  /* ===== 表格 ===== */
+  .tbl-wrap{overflow-x:auto;margin:10px 0 6px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hairline-soft);vertical-align:top;}
+  th{font-size:12px;color:var(--steel);font-weight:600;background:var(--surface);white-space:nowrap;}
+  td.num,.num{font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  .c{text-align:center;}
+
+  /* 状态徽标 / verdict 样式演示 */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;}
+  .badge.ok{background:var(--tint-mint);color:var(--green-deep);}
+  .badge.over{background:rgba(224,49,49,.12);color:var(--error);}
+  .verdict{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;
+  }
+  .verdict.ok{background:var(--tint-mint);color:var(--green-deep);}
+  .verdict.warn{background:var(--tint-peach);color:var(--orange-deep);}
+  .verdict.info{background:var(--surface);color:var(--slate);}
+  .verdict-demo{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 2px;}
+
+  footer{
+    margin-top:8px;padding:20px 0 8px;border-top:1px solid var(--hairline);
+    font-size:12px;color:var(--steel);text-align:center;line-height:1.8;
+  }
+  footer a{color:var(--link-blue);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+
+  @media (max-width:720px){
+    .hero{padding:44px 20px 38px;}
+    .dots i:nth-child(2),.dots i:nth-child(4),.dots i:nth-child(6){display:none;}
+    .doc-card{padding:22px 20px;}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <span class="hero-badge">配套文档 · 与计算器实现同步</span>
+  <h1>显示接口信号规格与公式汇总</h1>
+  <p>依据《显示接口信号计算器》实际代码规则整理,涵盖 7 种信号类型(eDP / MIPI D-PHY / MIPI C-PHY / LVDS / V-by-One / TTL / HDMI)的输入参数、计算公式、规格阈值与合规判定逻辑。</p>
+</header>
+
+<nav class="topnav" aria-label="章节导航">
+  <div class="nav-row">
+    <a class="nav-pill" href="#sec1">一 · 信号类型</a>
+    <a class="nav-pill" href="#sec2">二 · 通用参数</a>
+    <a class="nav-pill" href="#sec3">三 · eDP</a>
+    <a class="nav-pill" href="#sec4">四 · D-PHY</a>
+    <a class="nav-pill" href="#sec5">五 · C-PHY</a>
+    <a class="nav-pill" href="#sec6">六 · LVDS</a>
+    <a class="nav-pill" href="#sec7">七 · V-by-One</a>
+    <a class="nav-pill" href="#sec8">八 · TTL</a>
+    <a class="nav-pill" href="#sec9">八续 · HDMI</a>
+    <a class="nav-pill" href="#sec10">九 · 交互校验</a>
+    <a class="nav-pill" href="#sec11">十 · 速查表</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <!-- 一、信号类型 -->
+  <section class="doc-card" id="sec1">
+    <h2><span class="no">一</span>信号类型</h2>
+    <p>胶囊按钮顺序与可选值:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th class="c">顺序</th><th>信号类型</th><th>内部 key</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td class="c num">1</td><td><strong>eDP</strong></td><td><code class="k">dp</code></td><td>DisplayPort 1.4 / 2.0 双公式 + 挡位适配</td></tr>
+          <tr><td class="c num">2</td><td><strong>MIPI D-PHY</strong></td><td><code class="k">mipi</code></td><td>4 组公式(按速率档位 × 时钟模式),DSI 速率</td></tr>
+          <tr><td class="c num">3</td><td><strong>MIPI C-PHY</strong></td><td><code class="k">cphy</code></td><td>像素时钟 + DSI 符号率(sps)</td></tr>
+          <tr><td class="c num">4</td><td><strong>LVDS</strong></td><td><code class="k">lvds</code></td><td>像素时钟,按通道数(Link 数)判定</td></tr>
+          <tr><td class="c num">5</td><td><strong>V-by-One</strong></td><td><code class="k">vbyone</code></td><td>按总时序计算,色深 / Lane 可选,系数 ×1.25</td></tr>
+          <tr><td class="c num">6</td><td><strong>TTL</strong></td><td><code class="k">ttl</code></td><td>时钟频率 = 传输速率(单边沿)</td></tr>
+          <tr><td class="c num">7</td><td><strong>HDMI</strong></td><td><code class="k">hdmi</code></td><td>HDMI 1.4 / 2.0 TMDS时钟与带宽(固定 10bit)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 二、通用参数与单位 -->
+  <section class="doc-card" id="sec2">
+    <h2><span class="no">二</span>通用参数与单位</h2>
+
+    <h3>单位换算</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>量</th><th>单位</th><th>换算</th></tr></thead>
+        <tbody>
+          <tr><td>时序 / 分辨率</td><td>Pixels(px)</td><td>—</td></tr>
+          <tr><td>刷新率</td><td>Hz</td><td>—</td></tr>
+          <tr><td>色深</td><td>bit</td><td>8 / 10 / 12</td></tr>
+          <tr><td>时钟频率 / 像素时钟</td><td>Hz → MHz</td><td class="num">1 MHz = 10⁶ Hz</td></tr>
+          <tr><td>传输速率(D-PHY / eDP / V-by-One)</td><td>bps → Mbps → Gbps</td><td class="num">1 Gbps = 1000 Mbps = 10⁹ bps</td></tr>
+          <tr><td>符号率(C-PHY DSI)</td><td>sps → Msps → Gsps</td><td class="num">1 Gsps = 1000 Msps = 10⁹ sps</td></tr>
+          <tr><td>C-PHY 编码</td><td>—</td><td>每符号 ≈ 2.28 bit(=16/7),公式中以 <code class="f">/2.28</code> 体现</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Timing 设置面板(可折叠,位于页面顶部)</h3>
+    <p class="muted">默认折叠,展开后可通过子参数自动计算总时序:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>单位</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>总时序 [Total]</td><td>px</td><td><strong>自动计算,不可编辑</strong></td></tr>
+          <tr><td>有效分辨率 [Active]</td><td>px</td><td>水平/垂直有效像素数</td></tr>
+          <tr><td>后肩 [Back Porch]</td><td>px</td><td>水平/垂直后肩</td></tr>
+          <tr><td>前肩 [Front Porch]</td><td>px</td><td>水平/垂直前肩</td></tr>
+          <tr><td>同步宽度 [Sync Width]</td><td>px</td><td>水平/垂直同步宽度</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="formula">H_TOTAL = H_ACTIVE + H_BP + H_FP + H_SW
+V_TOTAL = V_ACTIVE + V_BP + V_FP + V_SW</div>
+    <div class="note-block">
+      <ul>
+        <li>水平 / 垂直各自的 4 个子参数需<strong>全部填写有效值</strong>才会计算对应 Total;未填全时 Total 显示为空,且不覆盖主面板的总时序值。</li>
+        <li>展开 Timing 面板时,"面板参数"中的水平/垂直总时序自动变为只读;折叠后恢复可编辑。</li>
+        <li>输入框支持回车键跳转到下一个(顺序:水平有效 → 垂直有效 → 水平后肩 → 垂直后肩 → 水平前肩 → 垂直前肩 → 水平同步 → 垂直同步)。</li>
+        <li>面板折叠/展开状态通过 localStorage 记忆(键 <code class="f">dsi-calc-timing-open</code>),下次打开自动恢复。</li>
+      </ul>
+    </div>
+
+    <h3>共享输入面板(5 个字段,始终显示)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>单位</th><th>控件</th><th>默认值</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>水平总时序</td><td>px</td><td>数字</td><td class="c num">2560</td><td>正数(可由 Timing 面板自动计算)</td></tr>
+          <tr><td>垂直总时序</td><td>px</td><td>数字</td><td class="c num">1600</td><td>正数(可由 Timing 面板自动计算)</td></tr>
+          <tr><td>刷新率</td><td>Hz</td><td>数字</td><td class="c num">60</td><td>正数</td></tr>
+          <tr><td>色深</td><td>bit</td><td>胶囊</td><td class="c num">8</td><td>8 / 10 / 12</td></tr>
+          <tr><td>Lane 数</td><td>—</td><td>胶囊</td><td class="c num">1</td><td><strong>1 / 2 / 4 / 8 / 16 / 32</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note-block">
+      <p><strong>字段联动</strong></p>
+      <ul>
+        <li>选择 <strong>LVDS</strong> 时,"Lane 数"胶囊组切换为 <strong>Link 数</strong>(单 / 双 / 四 / 八通道),色深不用。</li>
+        <li>选择 <strong>TTL</strong> 时,整个 Lane/Link 字段<strong>隐藏</strong>,色深也不用。</li>
+        <li>选择 <strong>V-by-One</strong> 时,使用总时序 / 色深 / Lane,按 <code class="f">H总×V总×(色深×3)×1.25×刷新率/Lane</code> 计算;Timing 面板自动求和同样生效。</li>
+        <li>选择 <strong>HDMI</strong> 时,固定 10bit、Symbol per clock=1,不使用色深与 Lane。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 三、eDP -->
+  <section class="doc-card" id="sec3">
+    <h2><span class="no">三</span>eDP</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="tag">色深</span><span class="tag">Lane</span></div>
+
+    <h3>计算公式(两套,同时显示)</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>版本</th><th class="c">系数</th><th>公式</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DP 1.4</strong></td><td class="c num">×1.25</td><td><code class="f">DSI(bps) = 水平总时序 × 垂直总时序 × 刷新率 × (色深 × 3) × 1.25 / Lane</code></td></tr>
+          <tr><td><strong>DP 2.0</strong></td><td class="c num">×1.05</td><td><code class="f">DSI(bps) = 水平总时序 × 垂直总时序 × 刷新率 × (色深 × 3) × 1.05 / Lane</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note-block"><p>结果同时显示 <strong>DP 1.4 速率</strong> 与 <strong>DP 2.0 速率</strong>(均为 Gbps/Lane)。</p></div>
+
+    <h3>挡位适配</h3>
+    <p>对计算出的速率,在以下挡位集合中取<strong>不小于速率的最小挡位</strong>作为适配结果;若无任何挡位 ≥ 速率,则标 <span class="badge over">超规</span>。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>接口模式</th><th>支持挡位(Gbps)</th><th>判定依据速率</th><th>显示条件</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DP(DP 1.4)</strong></td><td class="num">1.62 / 2.7 / 5.4 / 8.1</td><td>DP 1.4 速率</td><td>始终显示</td></tr>
+          <tr><td><strong>ALPDP(DP 1.4)</strong></td><td class="num">1.62 / 2.16 / 2.7 / 3.24 / 3.78 / 4.32 / 5.4 / 8.1</td><td>DP 1.4 速率</td><td>始终显示</td></tr>
+          <tr><td><strong>ALPDP(DP 2.0)</strong></td><td class="num">8.1 / 10 / 13.5 / 20</td><td><strong>DP 2.0 速率</strong></td><td><strong>仅当 DP 1.4 速率 &gt; 8.1 Gbps 时才显示</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note-block"><p><strong>判定规则</strong>:DP(DP 1.4) 与 ALPDP(DP 1.4) 按 <strong>DP 1.4 速率</strong> 匹配;ALPDP(DP 2.0) 按 <strong>DP 2.0 速率</strong> 匹配。</p></div>
+
+    <h3>举例</h3>
+    <div class="note-block">
+      <p>DP 1.4 速率 = 12.39 Gbps(→ DP 2.0 速率 ≈ 10.41 Gbps):</p>
+      <ul>
+        <li>DP(DP 1.4):<span class="badge over">超规</span>(&gt;8.1)</li>
+        <li>ALPDP(DP 1.4):<span class="badge over">超规</span>(&gt;8.1)</li>
+        <li>ALPDP(DP 2.0):<span class="badge ok">13.5 Gbps 适用</span>(因 12.39 &gt; 8.1,显示该行;按 10.41 匹配)</li>
+      </ul>
+      <p>DP 1.4 速率 = 3.39 Gbps:</p>
+      <ul>
+        <li>DP(DP 1.4):<span class="badge ok">5.4 Gbps 适用</span></li>
+        <li>ALPDP(DP 1.4):<span class="badge ok">3.78 Gbps 适用</span></li>
+        <li>ALPDP(DP 2.0):不显示(≤8.1)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 四、MIPI D-PHY -->
+  <section class="doc-card" id="sec4">
+    <h2><span class="no">四</span>MIPI D-PHY</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="tag">色深</span><span class="tag">Lane</span></div>
+
+    <h3>计算公式(4 组)</h3>
+    <div class="formula">DSI(bps) = (水平总时序(Pixels) + 加数) × 垂直总时序(Pixels) × 刷新率(Hz) × 色深(bit) × 3 / Lane</div>
+    <p>按<strong>目标速率档位</strong>与<strong>时钟模式</strong>选择不同加数(协议开销):</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>速率档位</th><th>时钟模式</th><th class="c">水平时序加数</th></tr></thead>
+        <tbody>
+          <tr><td>&lt; 1.5 Gbps</td><td>非离散(连续时钟)</td><td class="c num"><strong>+95</strong></td></tr>
+          <tr><td>&lt; 1.5 Gbps</td><td>离散(Burst/突发)</td><td class="c num"><strong>+190</strong></td></tr>
+          <tr><td>&gt; 1.5 Gbps</td><td>非离散</td><td class="c num"><strong>+145</strong></td></tr>
+          <tr><td>&gt; 1.5 Gbps</td><td>离散</td><td class="c num"><strong>+255</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>结果表与自洽高亮</h3>
+    <p>4 组公式全部计算并列出;每行判定<strong>自洽性</strong>(公式档位与计算结果是否一致),自洽行高亮 <span class="badge ok">适用</span>:</p>
+    <div class="note-block">
+      <ul>
+        <li><code class="f">&lt;1.5 Gbps</code> 档的行:计算结果 <strong>&lt; 1.5 Gbps</strong> → 自洽;</li>
+        <li><code class="f">&gt;1.5 Gbps</code> 档的行:计算结果 <strong>≥ 1.5 Gbps</strong> → 自洽。</li>
+      </ul>
+    </div>
+
+    <h3>DSI 上限</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>上限:2.5 Gbps/Lane</strong>(&gt;1.5 Gbps 档的上限为 2.5 G)。</li>
+        <li>取自洽行中<strong>最大速率</strong>,若 &gt; 2.5 Gbps → 提示(warn 样式):<code class="f">DSI 速率 X.XX Gbps 超出上限 2.5 Gbps (&gt;1.5Gbps )</code>;</li>
+        <li>否则提示:<code class="f">DSI 速率在规格内(上限 2.5 Gbps/Lane)</code>。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 五、MIPI C-PHY -->
+  <section class="doc-card" id="sec5">
+    <h2><span class="no">五</span>MIPI C-PHY</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="tag">色深</span><span class="tag">Lane</span></div>
+
+    <h3>计算公式</h3>
+    <div class="formula">像素时钟(MHz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) ÷ 10⁶
+DSI 速率(sps) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) × 3 × 色深(bit) × 1.2 / (Lane × 2.28)</div>
+    <div class="note-block"><p>固定常数:<code class="f">×3</code>、<code class="f">×1.2</code>、<code class="f">/2.28</code>(2.28 ≈ 每符号 16/7 bit)。色深取自用户所选胶囊(默认 8 bit)。</p></div>
+
+    <h3>像素时钟规格(361 平台 / 2832 芯片)</h3>
+    <p>单 TTL 像素时钟上限 <strong>160 MHz</strong>;1 个 2832 = 2 个 TTL;2 个 2832 = 4 个 TTL = 平台上限。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>像素时钟</th><th>判定</th><th>建议配置</th></tr></thead>
+        <tbody>
+          <tr><td class="num">≤ 320 MHz</td><td><span class="badge ok">✅ 在规格内</span></td><td><strong>1 个 2832、2 个 TTL</strong>(上限 320 MHz)</td></tr>
+          <tr><td class="num">320 &lt; ≤ 640 MHz</td><td><span class="badge ok">✅ 在规格内</span></td><td><strong>2 个 2832、4 个 TTL</strong>(上限 640 MHz)</td></tr>
+          <tr><td class="num">&gt; 640 MHz</td><td><span class="badge over">⚠️ 超规</span></td><td>超出 361 平台规格上限(640 MHz)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>DSI 符号率上限</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>上限:1.5 Gsps/Lane</strong>(符号率,sps)。</li>
+        <li>DSI 速率 &gt; 1.5 Gsps → 超规;否则在规格内。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 六、LVDS -->
+  <section class="doc-card" id="sec6">
+    <h2><span class="no">六</span>LVDS</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="tag">Link 数</span><span class="note muted">不使用色深</span></div>
+    <div class="note-block"><p>选 LVDS 时,Lane 数胶囊组切换为 <strong>Link 数</strong>:单通道(1)/ 双通道(2)/ 四通道(4)/ 八通道(8)。</p></div>
+
+    <h3>计算公式</h3>
+    <div class="formula">像素时钟(MHz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) ÷ 10⁶
+Single-link LVDS像素时钟 PCLK(MHz) = 像素时钟(MHz) ÷ Link 数</div>
+
+    <h3>显示</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>大字</strong>:<code class="f">Single-link LVDS 像素时钟(PCLK)</code> = 像素时钟 ÷ Link 数</li>
+        <li><strong>小字</strong>:<code class="f">像素时钟</code>(总)= 水平总时序 × 垂直总时序 × 刷新率 ÷ 10⁶</li>
+      </ul>
+    </div>
+
+    <h3>规格阈值(@0.1 MHz 步进)</h3>
+    <p>按所选 Link 数对应的通道规格(以<strong>总像素时钟</strong>判定):</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th class="c">Link 数</th><th>通道</th><th>像素时钟范围</th><th>等效(单 Link 基准 10–135 MHz)</th></tr></thead>
+        <tbody>
+          <tr><td class="c num">1</td><td>单通道 Single</td><td class="num"><strong>10 ~ 135 MHz</strong></td><td class="num">10 ~ 135 MHz</td></tr>
+          <tr><td class="c num">2</td><td>双通道 Dual</td><td class="num"><strong>20 ~ 270 MHz</strong></td><td class="num">2 × (10 ~ 135)</td></tr>
+          <tr><td class="c num">4</td><td>四通道 Quad</td><td class="num"><strong>40 ~ 540 MHz</strong></td><td class="num">4 × (10 ~ 135)</td></tr>
+          <tr><td class="c num">8</td><td>八通道 Octal</td><td class="num"><strong>80 ~ 1080 MHz</strong></td><td class="num">8 × (10 ~ 135)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>判定规则</h3>
+    <div class="warn-block"><p>总像素时钟 <strong>&gt; 上限</strong> → ⚠️ <code class="f">超出{通道}上限(XXX MHz),建议增加通道数</code></p></div>
+    <div class="warn-block"><p>总像素时钟 <strong>&lt; 下限</strong> → ⚠️ <code class="f">低于{通道}下限(XX MHz),可减少通道数</code></p></div>
+    <div class="ok-block"><p>总像素时钟 <strong>在范围内</strong> → ✅ <code class="f">在{通道}规格内(XX–XXX MHz @0.1MHz 步进)</code></p></div>
+  </section>
+
+  <!-- 七、V-by-One -->
+  <section class="doc-card" id="sec7">
+    <h2><span class="no">七</span>V-by-One</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="tag">色深</span><span class="tag">Lane</span><span class="note muted">色深与 Lane 数取自用户选择</span></div>
+
+    <h3>计算公式</h3>
+    <div class="formula">Lane 数据速率(bps) = 水平总时序(Pixels) × 垂直总时序(Pixels) × (色深(bit) × 3) × 1.25 × 刷新率(Hz) ÷ Lane 数</div>
+    <div class="note-block"><p><code class="f">×3</code> = RGB 三通道;<code class="f">1.25</code> = 编码开销系数(8b/10b)。</p></div>
+
+    <h3>规格阈值</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>上限:3.75 Gbps/Lane</strong>(目前最高数据速率)。</li>
+        <li>每 Lane 速率 ≤ 3.75 Gbps → ✅ 在规格内;&gt; 3.75 Gbps → ⚠️ 超规格。</li>
+      </ul>
+    </div>
+    <div class="note-block">
+      <p>📝 变更记录:旧版公式为 <code class="f">水平分辨率 × 垂直分辨率 × 1.2 × 30(bit) × 刷新率 / Lane</code>(固定 30bit = 10bit×3、消隐系数 1.2);现行公式改用总时序与可选色深,系数改为 1.25。</p>
+    </div>
+  </section>
+
+  <!-- 八、TTL -->
+  <section class="doc-card" id="sec8">
+    <h2><span class="no">八</span>TTL</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="note muted">不使用色深 / Lane,Lane 字段隐藏</span></div>
+
+    <h3>计算公式</h3>
+    <div class="formula">时钟频率(Hz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz)   (单边沿采样,即传输速率)</div>
+    <div class="note-block"><p>采用单边沿采样,一个时钟周期传送 1 bit,故<strong>时钟频率即对应的传输速率</strong>(MHz = Mbps)。</p></div>
+
+    <h3>规格阈值</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>上限:100 Mbps</strong>(规格书标定最高)。</li>
+        <li>时钟频率 ≤ 100 Mbps → ✅ 在规格内;&gt; 100 Mbps → ⚠️ 超规格。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 八(续)、HDMI -->
+  <section class="doc-card" id="sec9">
+    <h2><span class="no">八续</span>HDMI</h2>
+    <div class="tags"><span class="tag">水平总时序</span><span class="tag">垂直总时序</span><span class="tag">刷新率</span><span class="note muted">固定 10bit,Symbol per clock=1,不使用色深 / Lane</span></div>
+
+    <h3>固定参数</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>参数</th><th>值</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>色深</td><td class="num">10 bit</td><td>固定</td></tr>
+          <tr><td>Color Depth Factor</td><td class="num">1.25</td><td>固定</td></tr>
+          <tr><td>Symbol per clock</td><td class="num">1</td><td>固定</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>计算公式</h3>
+    <div class="formula">像素时钟(MHz) = 水平总时序(Pixels) × 垂直总时序(Pixels) × 刷新率(Hz) ÷ 10⁶
+
+HDMI 1.4: TMDS时钟(MHz) = 像素时钟 × 1 × 1.25
+HDMI 2.0: TMDS时钟(MHz) = 像素时钟 × 1 × 1.25 ÷ 4
+
+TMDS带宽(Gbps) = TMDS时钟(MHz) × 10(固定10bit) ÷ 1000</div>
+
+    <h3>结果展示</h3>
+    <div class="note-block">
+      <ul>
+        <li>像素时钟单独显示(大字)</li>
+        <li>HDMI 1.4 / 2.0 对比表格:显示各自的 TMDS时钟与 TMDS带宽</li>
+        <li>表格中标注合规/超规状态</li>
+        <li>底部给出总体规格判定</li>
+      </ul>
+    </div>
+
+    <h3>总体判定规则</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th class="c">HDMI 1.4</th><th class="c">HDMI 2.0</th><th>判定</th></tr></thead>
+        <tbody>
+          <tr><td class="c"><span class="badge over">超规</span></td><td class="c"><span class="badge over">超规</span></td><td>⚠️ <code class="f">HDMI 1.4 和 2.0 TMDS带宽均超出规格(&gt; 18 Gbps)</code></td></tr>
+          <tr><td class="c"><span class="badge over">超规</span></td><td class="c"><span class="badge ok">合规</span></td><td>⚠️ <code class="f">HDMI 1.4 TMDS带宽超出规格,建议使用 HDMI 2.0</code></td></tr>
+          <tr><td class="c"><span class="badge ok">合规</span></td><td class="c"><span class="badge over">超规</span></td><td>✅ <code class="f">HDMI 1.4 合规,HDMI 2.0 超规但可通过降频使用</code></td></tr>
+          <tr><td class="c"><span class="badge ok">合规</span></td><td class="c"><span class="badge ok">合规</span></td><td>✅ <code class="f">HDMI 1.4 和 2.0 TMDS带宽均在规格内(≤ 18 Gbps)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>规格阈值</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>TMDS带宽上限:18 Gbps</strong></li>
+        <li>HDMI 1.4 TMDS带宽 ≤ 18 Gbps → ✅ 合规;&gt; 18 Gbps → ⚠️ 超规</li>
+        <li>HDMI 2.0 TMDS带宽 ≤ 18 Gbps → ✅ 合规;&gt; 18 Gbps → ⚠️ 超规</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 九、交互与校验规则 -->
+  <section class="doc-card" id="sec10">
+    <h2><span class="no">九</span>交互与校验规则</h2>
+
+    <h3>计算</h3>
+    <div class="note-block">
+      <ul>
+        <li><strong>实时计算</strong>:任一输入变化立即重算当前选中信号的结果。</li>
+        <li><strong>"计算"按钮</strong>:强制校验全部所需字段(标记 touched)并重算,结果区附反馈动效。</li>
+        <li><strong>状态保留</strong>:各输入值保留在内存中,切换信号类型再切回不丢失;输入值不写 localStorage(仅 Timing 面板折叠状态经 localStorage 记忆)。</li>
+      </ul>
+    </div>
+
+    <h3>字段校验</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>规则</th></tr></thead>
+        <tbody>
+          <tr><td>水平/垂直总时序、刷新率</td><td>非空 · 数字 · &gt; 0</td></tr>
+          <tr><td>色深</td><td>胶囊枚举(8/10/12),无需校验</td></tr>
+          <tr><td>Lane 数</td><td>胶囊枚举(1/2/4/8/16/32),恒为合法</td></tr>
+          <tr><td>Link 数(LVDS)</td><td>胶囊枚举(1/2/4/8),恒为合法</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note-block">
+      <ul>
+        <li>非法字段:输入框下方红字提示(如"请输入数值""需大于 0"),结果区显示"请先修正高亮的输入项",<strong>不输出错误计算结果</strong>。</li>
+        <li>仅当前信号<strong>所需</strong>字段参与校验(如 LVDS/TTL 不校验色深与 Lane)。</li>
+      </ul>
+    </div>
+
+    <h3>提示样式(verdict)</h3>
+    <div class="verdict-demo" aria-hidden="true">
+      <span class="verdict ok">✓ 在规格内</span>
+      <span class="verdict warn">⚠ 超出上限</span>
+      <span class="verdict info">说明性提示</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>级别</th><th>含义</th><th>样式</th></tr></thead>
+        <tbody>
+          <tr><td><code class="k">ok</code></td><td>在规格内</td><td>薄荷绿底 + ✓ 图标</td></tr>
+          <tr><td><code class="k">warn</code></td><td>超规格 / 超上限</td><td>蜜桃底 + ⚠ 图标、深橙文字(所有信号类型统一)</td></tr>
+          <tr><td><code class="k">info</code></td><td>说明性提示</td><td>灰底</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>计算值高亮</h3>
+    <div class="note-block"><p>大字号结果数值(及 MIPI 表格中的速率值)使用墨色加重显示;单位后缀(MHz / Gbps 等)为灰色,形成主-次层级。</p></div>
+  </section>
+
+  <!-- 十、公式速查表 -->
+  <section class="doc-card" id="sec11">
+    <h2><span class="no">十</span>公式速查表</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>信号</th><th>核心公式</th><th>关键输出</th><th>规格上限</th></tr></thead>
+        <tbody>
+          <tr><td><strong>eDP</strong></td><td><code class="f">H×V×刷新率×(色深×3)×{1.25 | 1.05}/Lane</code></td><td>DP 1.4 / DP 2.0 速率(Gbps/Lane)+ 挡位适配</td><td>DP 1.4 挡位 1.62/2.7/5.4/8.1;ALPDP 1.4 含 2.16/3.24/3.78/4.32;ALPDP 2.0 = 8.1/10/13.5/20</td></tr>
+          <tr><td><strong>MIPI D-PHY</strong></td><td><code class="f">(H+加数)×V×刷新率×色深×3/Lane</code></td><td>DSI 速率(Mbps/Gbps per Lane)</td><td>DSI ≤ <strong>2.5 Gbps/Lane</strong></td></tr>
+          <tr><td><strong>MIPI C-PHY</strong></td><td>像素时钟=<code class="f">H×V×刷新率÷10⁶</code>;DSI=<code class="f">H×V×刷新率×3×色深×1.2/(Lane×2.28)</code></td><td>像素时钟(MHz)+ DSI(sps)</td><td>像素时钟 ≤640 MHz(平台);DSI ≤ <strong>1.5 Gsps/Lane</strong></td></tr>
+          <tr><td><strong>LVDS</strong></td><td>像素时钟=<code class="f">H×V×刷新率÷10⁶</code>;PCLK=像素时钟÷Link数</td><td>Single-link PCLK + 总像素时钟(MHz)</td><td>单/双/四/八通道:10–135 / 20–270 / 40–540 / 80–1080 MHz</td></tr>
+          <tr><td><strong>V-by-One</strong></td><td><code class="f">H总×V总×(色深×3)×1.25×刷新率/Lane</code></td><td>Lane 数据速率(Gbps/Lane)</td><td>≤ <strong>3.75 Gbps/Lane</strong></td></tr>
+          <tr><td><strong>TTL</strong></td><td><code class="f">H×V×刷新率</code>(=传输速率)</td><td>时钟频率 / 速率(MHz/Mbps)</td><td>≤ <strong>100 Mbps</strong></td></tr>
+          <tr><td><strong>HDMI</strong></td><td>像素时钟=<code class="f">H×V×刷新率÷10⁶</code>;TMDS=<code class="f">像素时钟×1.25</code>(1.4)/<code class="f">像素时钟×1.25÷4</code>(2.0)</td><td>TMDS时钟(MHz)+ TMDS带宽(Gbps)</td><td>TMDS带宽 ≤ <strong>18 Gbps</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    本文与《显示接口信号计算器》实现保持一致;若代码规则更新,应同步修订。<br>
+    配套工具:<a href="https://github.com/AomeNero/DSI-Calculation" target="_blank" rel="noopener noreferrer">AomeNero/DSI-Calculation</a> · 作者:AomeNero · v1.3.0
+  </footer>
+</main>
+
+</body>
+</html>
