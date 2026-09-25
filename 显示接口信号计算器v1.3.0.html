@@ -310,7 +310,9 @@
         <div class="pill-row" id="lane" role="radiogroup" aria-labelledby="lane-label">
           <button type="button" class="pill" data-value="1" role="radio" aria-checked="true">1</button>
           <button type="button" class="pill" data-value="2" role="radio" aria-checked="false">2</button>
+          <button type="button" class="pill" data-value="3" role="radio" aria-checked="false" hidden>3</button>
           <button type="button" class="pill" data-value="4" role="radio" aria-checked="false">4</button>
+          <button type="button" class="pill" data-value="6" role="radio" aria-checked="false" hidden>6</button>
           <button type="button" class="pill" data-value="8" role="radio" aria-checked="false">8</button>
           <button type="button" class="pill" data-value="16" role="radio" aria-checked="false">16</button>
           <button type="button" class="pill" data-value="32" role="radio" aria-checked="false">32</button>
@@ -494,8 +496,8 @@
           if(!d) return;
           e.preventDefault();
           var j = idx;
-          do{ j = (j + d + btns.length) % btns.length; }while(btns[j].disabled && j !== idx);
-          if(btns[j].disabled) return;
+          do{ j = (j + d + btns.length) % btns.length; }while((btns[j].disabled||btns[j].hidden) && j !== idx);
+          if(btns[j].disabled || btns[j].hidden) return;
           setPillValue(id, btns[j].getAttribute('data-value'));
           btns[j].focus();
           recalc();
@@ -678,6 +680,18 @@
       var linkWrap=$('lvds-link'); if(linkWrap) linkWrap.hidden = !isLvds;
       var lab=$('lane-label');
       if(lab){ lab.textContent = isLvds ? 'Link 数' : 'Lane 数'; }
+      // Lane 选项按接口过滤:3 挡仅 MIPI D-PHY / C-PHY,6 挡仅 C-PHY
+      if(!isLvds){
+        var laneBtns=$('lane').querySelectorAll('.pill');
+        for(var i=0;i<laneBtns.length;i++){
+          var lv=laneBtns[i].getAttribute('data-value');
+          if(lv==='3'){ laneBtns[i].hidden = !(type==='mipi'||type==='cphy'); }
+          else if(lv==='6'){ laneBtns[i].hidden = type!=='cphy'; }
+        }
+        // 当前选中挡位被隐藏时回落到 1
+        var curLane=getPillValue('lane');
+        if((curLane==='3'&&!(type==='mipi'||type==='cphy'))||(curLane==='6'&&type!=='cphy')){ setPillValue('lane','1'); }
+      }
     }
     // HDMI:固定色深10bit并禁用其余挡位
     if(isHdmi){
