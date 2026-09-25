@@ -32,7 +32,7 @@
 
 ## 🚀 快速开始
 
-直接双击打开 `显示接口信号计算器.html` 即可使用(推荐 Chrome / Edge / Firefox)。
+直接双击打开 `显示接口信号计算器v1.3.0.html` 即可使用(推荐 Chrome / Edge / Firefox)。
 
 无需安装、无需构建、无需联网。
 
@@ -92,7 +92,7 @@
 
 ```
 DSI-Calculation/
-├── 显示接口信号计算器.html          # 单文件计算工具(HTML + CSS + JS)
+├── 显示接口信号计算器v1.3.0.html    # 单文件计算工具(HTML + CSS + JS)
 ├── 显示接口信号规格&计算公式汇总.md  # 完整公式 / 规格 / 判定规则文档
 ├── README.md
 ├── CHANGELOG.md                    # 版本变更记录
